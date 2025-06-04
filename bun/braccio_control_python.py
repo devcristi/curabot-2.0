@@ -540,7 +540,7 @@ if __name__ == "__main__":
             try:
                 z = float(input("   z fix (mm): ").strip())
             except ValueError:
-                print("   ❌ Trebuie să introduci numere valide.")
+                print("   ❌ Trebuie să introduci numere valide. ")
                 continue
             print(f"   → Test orizontal la înălțimea z={z}")
             move_horizontal(z)
