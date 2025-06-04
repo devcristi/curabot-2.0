@@ -1,69 +1,58 @@
-#include <Servo.h>
-#include <Braccio.h>
 
+#include <Servo.h>
+#include "BraccioRobot.h"
 #define INPUT_BUFFER_SIZE 50
 
-// Home position constants
-#define ZERO_BASE   90  // servo 1
-#define ZERO_SHOUL  85  // servo 2
-#define ZERO_ELBOW  85  // servo 3
-#define ZERO_WRSTV 103  // servo 4
-#define ZERO_WRSTR  20  // servo 5
-#define ZERO_GRIP   73  // servo 6
-
 static char inputBuffer[INPUT_BUFFER_SIZE];
-Braccio::Position armPosition;   // note: Position lives in the Braccio namespace
+Position armPosition;
 
 void setup() {
   Serial.begin(115200);
-  Braccio.begin();               // instead of BraccioRobot.init()
+  BraccioRobot.init();
 }
 
 void loop() {
-  if (Serial.available()) {
-    byte len = Serial.readBytesUntil('\n', inputBuffer, INPUT_BUFFER_SIZE - 1);
-    inputBuffer[len] = '\0';
-    interpretCommand(inputBuffer);
+    handleInput();
+}
+
+void handleInput() {
+  if (Serial.available() > 0) {
+    byte result = Serial.readBytesUntil('\n', inputBuffer, INPUT_BUFFER_SIZE);
+    inputBuffer[result] = 0;
+    interpretCommand(inputBuffer, result);
   }
 }
 
-void interpretCommand(const char* buf) {
-  switch (buf[0]) {
-    case 'P':
-      positionArm(buf);
-      break;
-    case 'H':
-      homePositionArm();
-      break;
-    case '0':
-      Braccio.powerOff();
-      Serial.println("OK");
-      break;
-    case '1':
-      Braccio.powerOn();
-      Serial.println("OK");
-      break;
-    default:
-      Serial.println("E0");
-      break;
+void interpretCommand(char* inputBuffer, byte commandLength) {
+  if (inputBuffer[0] == 'P') {
+    positionArm(&inputBuffer[0]);
+  } else if (inputBuffer[0] == 'H') {
+    homePositionArm();
+  } else if (inputBuffer[0] == '0') {
+    BraccioRobot.powerOff();
+    Serial.println("OK");
+  }  else if (inputBuffer[0] == '1') {
+    BraccioRobot.powerOn();
+    Serial.println("OK");
+  } else {
+    Serial.println("E0");
   }
   Serial.flush();
 }
 
-void positionArm(const char *in) {
+voidp
+positionArm(char *in) {
   int speed = armPosition.setFromString(in);
   if (speed > 0) {
-    Braccio.moveToPosition(armPosition, speed);
+    BraccioRobot.moveToPosition(armPosition, speed);
     Serial.println("OK");
   } else {
     Serial.println("E1");
   }
 }
 
-void homePositionArm() {
-  armPosition.set(ZERO_BASE, ZERO_SHOUL, ZERO_ELBOW,
-                  ZERO_WRSTV, ZERO_WRSTR, ZERO_GRIP);
-  uint16_t defaultSpeed = 150;
-  Braccio.moveToPosition(armPosition, defaultSpeed);
+void
+homePositionArm() {
+  BraccioRobot.moveToPosition(armPosition.set(90, 85, 85, 103, 20, 73), 150);
   Serial.println("OK");
 }
