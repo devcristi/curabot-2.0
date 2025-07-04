@@ -40,7 +40,7 @@ void interpretCommand(char* inputBuffer, byte commandLength) {
   Serial.flush();
 }
 
-voidp
+void
 positionArm(char *in) {
   int speed = armPosition.setFromString(in);
   if (speed > 0) {
